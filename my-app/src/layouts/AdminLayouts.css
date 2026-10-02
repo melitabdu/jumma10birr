@@ -1,0 +1,119 @@
+/* ==============================
+   DESKTOP
+================================ */
+
+.admin-layout {
+  min-height: 100vh;
+  width: 100%;
+
+  background: #f6f8f7;
+}
+
+/*
+  The sidebar is fixed at 250px.
+  Therefore the content starts at 250px.
+*/
+
+.admin-content {
+  margin-left: 250px;
+
+  min-height: 100vh;
+
+  width: calc(100% - 250px);
+
+  box-sizing: border-box;
+}
+
+/* Current page */
+
+.admin-main {
+  padding: 30px;
+
+  box-sizing: border-box;
+
+  width: 100%;
+}
+
+/* Mobile button hidden on desktop */
+
+.mobile-menu-button {
+  display: none;
+}
+
+/* Overlay hidden on desktop */
+
+.mobile-overlay {
+  display: none;
+}
+
+
+/* ==============================
+   MOBILE
+================================ */
+
+@media (max-width: 768px) {
+
+  .sidebar {
+    transform: translateX(-100%);
+
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .admin-content {
+    margin-left: 0;
+
+    width: 100%;
+  }
+
+  .admin-main {
+    padding: 20px;
+
+    padding-top: 70px;
+  }
+
+  /* Mobile menu button */
+
+  .mobile-menu-button {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    position: fixed;
+
+    top: 15px;
+    left: 15px;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #2e8b57;
+    color: white;
+
+    cursor: pointer;
+
+    z-index: 1300;
+  }
+
+  /* Overlay */
+
+  .mobile-overlay {
+    display: block;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.4);
+
+    z-index: 900;
+  }
+}

@@ -1,0 +1,448 @@
+/* ==========================================
+   NEWS MANAGEMENT
+========================================== */
+
+.news-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #222;
+}
+
+
+/* ==========================================
+   PAGE TITLE
+========================================== */
+
+.news-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+.news-subtitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 45px;
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+
+/* ==========================================
+   SUCCESS / ERROR MESSAGE
+========================================== */
+
+.news-message {
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+
+/* ==========================================
+   FORM
+========================================== */
+
+.news-form {
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.news-form h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  color: #111827;
+}
+
+
+/* ==========================================
+   INPUTS
+========================================== */
+
+.news-form input,
+.news-form textarea,
+.news-form select {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 13px 15px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  font-size: 15px;
+  font-family: inherit;
+
+  outline: none;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease;
+
+  background: #fff;
+}
+
+.news-form input:focus,
+.news-form textarea:focus,
+.news-form select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.news-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.news-form input::placeholder,
+.news-form textarea::placeholder {
+  color: #9ca3af;
+}
+
+
+/* ==========================================
+   CHECKBOXES
+========================================== */
+
+.news-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.news-checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+
+/* ==========================================
+   FORM BUTTONS
+========================================== */
+
+.news-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.news-btn,
+.news-cancel-btn {
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.news-btn {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.news-btn:hover {
+  background: #1d4ed8;
+}
+
+.news-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.news-cancel-btn {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.news-cancel-btn:hover {
+  background: #d1d5db;
+}
+
+
+/* ==========================================
+   NEWS LIST
+========================================== */
+
+.news-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+
+/* ==========================================
+   NEWS CARD
+========================================== */
+
+.news-card {
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+
+  padding-bottom: 20px;
+
+  transition: transform 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.news-card:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ==========================================
+   NEWS IMAGE
+========================================== */
+
+.news-image {
+  width: 100%;
+  height: 190px;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+
+/* ==========================================
+   CARD CONTENT
+========================================== */
+
+.news-card h3 {
+  font-size: 20px;
+  line-height: 1.4;
+
+  margin: 18px 18px 10px;
+
+  color: #111827;
+}
+
+.news-card p {
+  margin: 8px 18px;
+
+  font-size: 14px;
+  line-height: 1.5;
+
+  color: #4b5563;
+}
+
+.news-card-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+
+/* ==========================================
+   VIDEO LINKS
+========================================== */
+
+.news-card a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.news-card a:hover {
+  text-decoration: underline;
+}
+
+
+/* ==========================================
+   STATUS
+========================================== */
+
+.published {
+  color: #15803d;
+}
+
+.draft {
+  color: #b45309;
+}
+
+
+/* ==========================================
+   NEWS ACTIONS
+========================================== */
+
+.news-actions {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  padding: 12px 18px 0;
+}
+
+.news-actions button {
+  border: none;
+
+  padding: 9px 12px;
+
+  border-radius: 7px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  background: #f3f4f6;
+  color: #374151;
+
+  transition: background 0.2s ease,
+              transform 0.2s ease;
+}
+
+.news-actions button:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+
+/* ==========================================
+   DIFFERENT ACTION BUTTONS
+========================================== */
+
+.news-actions button:first-child {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.news-actions button:nth-child(2) {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.news-actions button:nth-child(3) {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.news-actions button:last-child {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.news-actions button:hover {
+  opacity: 0.85;
+}
+
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 1000px) {
+  .news-container {
+    padding: 25px 20px;
+  }
+
+  .news-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 650px) {
+  .news-container {
+    padding: 20px 14px;
+  }
+
+  .news-title {
+    font-size: 26px;
+  }
+
+  .news-subtitle {
+    font-size: 21px;
+    margin-top: 35px;
+  }
+
+  .news-form {
+    padding: 20px;
+  }
+
+  .news-form-actions {
+    flex-direction: column;
+  }
+
+  .news-btn,
+  .news-cancel-btn {
+    width: 100%;
+  }
+
+  .news-list {
+    grid-template-columns: 1fr;
+  }
+
+  .news-image {
+    height: 210px;
+  }
+
+  .news-actions {
+    flex-direction: column;
+  }
+
+  .news-actions button {
+    width: 100%;
+  }
+}
+
+
+/* ==========================================
+   SMALL MOBILE
+========================================== */
+
+@media (max-width: 400px) {
+  .news-container {
+    padding: 15px 10px;
+  }
+
+  .news-form {
+    padding: 16px;
+  }
+
+  .news-title {
+    font-size: 23px;
+  }
+
+  .news-card h3 {
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1078592599",
+    "project_id": "jumma10birr",
+    "storage_bucket": "jumma10birr.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1078592599:android:ada8a57aa52626728a8f12",
+        "android_client_info": {
+          "package_name": "com.anonymous.frontendmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6UKYplziTUpOI8O8OY44D7bUcKp1F5Vk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

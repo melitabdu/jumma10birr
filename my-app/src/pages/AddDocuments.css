@@ -1,0 +1,146 @@
+.add-document-page {
+  padding: 30px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.add-document-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.add-document-header {
+  margin-bottom: 25px;
+}
+
+.add-document-header h2 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  color: #222;
+}
+
+.add-document-header p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group label span {
+  color: #d32f2f;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d5d5d5;
+  border-radius: 7px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #2e8b57;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group input[type="file"] {
+  padding: 10px;
+  background: #fafafa;
+}
+
+.selected-file {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f3f8f5;
+  border-radius: 6px;
+  color: #2e8b57;
+  font-size: 14px;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 7px;
+  color: #777;
+}
+
+.success-message {
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 7px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 14px;
+}
+
+.error-message {
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 7px;
+  background: #ffebee;
+  color: #c62828;
+  font-size: 14px;
+}
+
+.upload-document-button {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: 7px;
+  background: #2e8b57;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.upload-document-button:hover {
+  background: #267349;
+}
+
+.upload-document-button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .add-document-page {
+    padding: 15px;
+  }
+
+  .add-document-card {
+    padding: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

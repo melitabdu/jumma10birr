@@ -1,0 +1,279 @@
+/* ==========================================
+   ANNOUNCEMENT MANAGEMENT
+========================================== */
+
+.announcement-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   PAGE TITLE
+========================================== */
+
+.announcement-title {
+  margin: 0 0 25px;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   MESSAGE
+========================================== */
+
+.announcement-message {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  font-weight: 500;
+}
+
+/* ==========================================
+   FORM
+========================================== */
+
+.announcement-form {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 40px;
+}
+
+.announcement-form h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+/* ==========================================
+   INPUTS
+========================================== */
+
+.announcement-form input[type="text"],
+.announcement-form textarea,
+.announcement-form select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  box-sizing: border-box;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.announcement-form textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.announcement-form input[type="text"]:focus,
+.announcement-form textarea:focus,
+.announcement-form select:focus {
+  border-color: #2563eb;
+}
+
+/* ==========================================
+   PUBLISH CHECKBOX
+========================================== */
+
+.publish-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0 20px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.publish-checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* ==========================================
+   FORM BUTTONS
+========================================== */
+
+.announcement-form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.announcement-btn,
+.announcement-cancel-btn {
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.announcement-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.announcement-cancel-btn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.announcement-btn:hover,
+.announcement-cancel-btn:hover {
+  transform: translateY(-1px);
+}
+
+.announcement-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   SUBTITLE
+========================================== */
+
+.announcement-subtitle {
+  margin-bottom: 20px;
+  font-size: 23px;
+}
+
+/* ==========================================
+   ANNOUNCEMENT LIST
+========================================== */
+
+.announcement-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* ==========================================
+   ANNOUNCEMENT CARD
+========================================== */
+
+.announcement-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.announcement-card h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.announcement-card p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.announcement-card-message {
+  color: #4b5563;
+  white-space: pre-wrap;
+}
+
+/* ==========================================
+   ANNOUNCEMENT IMAGE
+========================================== */
+
+.announcement-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+/* ==========================================
+   STATUS
+========================================== */
+
+.published {
+  color: #16a34a;
+}
+
+.draft {
+  color: #d97706;
+}
+
+/* ==========================================
+   ACTION BUTTONS
+========================================== */
+
+.announcement-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.announcement-actions button {
+  border: none;
+  padding: 9px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  background: #f3f4f6;
+  color: #111827;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.announcement-actions button:hover {
+  transform: translateY(-1px);
+  opacity: 0.85;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 768px) {
+  .announcement-container {
+    padding: 20px;
+  }
+
+  .announcement-title {
+    font-size: 25px;
+  }
+
+  .announcement-list {
+    grid-template-columns: 1fr;
+  }
+
+  .announcement-form {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .announcement-container {
+    padding: 15px;
+  }
+
+  .announcement-form {
+    padding: 16px;
+  }
+
+  .announcement-actions {
+    flex-direction: column;
+  }
+
+  .announcement-actions button {
+    width: 100%;
+  }
+}
