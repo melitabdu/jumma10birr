@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "frontend-mobile",
@@ -6,9 +7,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -19,20 +22,25 @@
       "package": "com.anonymous.frontendmobile",
       "googleServicesFile": "./google-services.json"
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "plugins": [
       "expo-web-browser",
       "expo-video",
       "expo-notifications",
       "expo-font"
     ],
+
     "extra": {
       "eas": {
         "projectId": "cfac650a-c0b6-4d1e-8222-9c9a8ebaabc9"
       }
     },
+
     "owner": "melitabdu12"
   }
 }
+
