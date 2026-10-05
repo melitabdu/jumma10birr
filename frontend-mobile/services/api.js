@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://10.201.93.221:5000",
+  baseURL: "https://jumma10birr-eiasc.onrender.com",
 });
 
 export default API;

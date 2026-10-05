@@ -16,11 +16,7 @@ import ProjectsCard from
 "../components/home/ProjectCard";
 
 
-/*import{
-
-getProjects,
-
-} from "../services/ProposalService";*/
+import{getProjects} from "../services/ProposalService";
 
 
 export default function ProjectsScreen({

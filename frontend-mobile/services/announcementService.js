@@ -5,8 +5,7 @@ import axios from "axios";
 // ==========================================
 
 const API_BASE =
-  "http://localhost:5000/api/announcements";
-
+  "https://jumma10birr-eiasc.onrender.com/api/announcements";
 
 // ==========================================
 // GET PUBLISHED ANNOUNCEMENTS
@@ -26,7 +25,6 @@ export const getAnnouncements = async () => {
     return response.data?.announcements || [];
 
   } catch (error) {
-
     console.error(
       "❌ Get announcements error:",
       error.response?.data || error.message
@@ -35,7 +33,6 @@ export const getAnnouncements = async () => {
     throw error;
   }
 };
-
 
 // ==========================================
 // GET SINGLE ANNOUNCEMENT
@@ -55,7 +52,6 @@ export const getAnnouncementById = async (id) => {
     return response.data?.announcement || null;
 
   } catch (error) {
-
     console.error(
       "❌ Get announcement error:",
       error.response?.data || error.message
