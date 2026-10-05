@@ -59,8 +59,8 @@ const allowedOrigins = [
   "http://localhost:5734",
   "http://localhost:8081",
   "http://localhost:19006",
-  "https://your-vercel-frontend.vercel.app",
-];
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 app.use(
   cors({
