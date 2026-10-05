@@ -19,6 +19,7 @@ import announcementRoutes from "./routes/announcementRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
+import pushNotificationRoutes from "./routes/pushNotificationRoutes.js";
 // ===== Middleware =====
 import {
   notFound,
@@ -59,8 +60,8 @@ const allowedOrigins = [
   "http://localhost:5734",
   "http://localhost:8081",
   "http://localhost:19006",
-  process.env.CLIENT_URL,
-].filter(Boolean);
+  "https://your-vercel-frontend.vercel.app",
+];
 
 app.use(
   cors({
@@ -123,7 +124,7 @@ app.use("/api/assets", assetRoutes);
 app.use("/api/announcements", announcementRoutes);
 
 app.use("/api/news", newsRoutes);
-
+app.use("/api/notifications", pushNotificationRoutes);
 // ======================================================
 // CHATBOT ROUTES
 // ======================================================
