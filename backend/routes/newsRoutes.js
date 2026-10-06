@@ -4,44 +4,61 @@ import {
   createNews,
   getNews,
   getPublishedNews,
-  getFeaturedNews,
   getNewsById,
   updateNews,
   deleteNews,
+  getFeaturedNews,
 } from "../controllers/newsController.js";
 
-import { protect, admin } from "../middleware/authMiddleware.js";
+import newsUpload from "../middleware/newsUpload.js";
 
 const router = express.Router();
 
-// ==========================================
-// PUBLIC / MOBILE ROUTES
-// ==========================================
+// Create News
+router.post(
+  "/",
+  newsUpload.fields([
+    {
+      name: "coverImage",
+      maxCount: 1,
+    },
+    {
+      name: "video",
+      maxCount: 1,
+    },
+  ]),
+  createNews
+);
 
-// Published news for mobile app
+// Get all News
+router.get("/", getNews);
+
+// Get published News
 router.get("/published", getPublishedNews);
 
-// Featured news for Hajji home page
+// Get featured News
 router.get("/featured", getFeaturedNews);
 
-// Single news article
+// Get one News item
 router.get("/:id", getNewsById);
 
+// Update News
+router.put(
+  "/:id",
+  newsUpload.fields([
+    {
+      name: "coverImage",
+      maxCount: 1,
+    },
+    {
+      name: "video",
+      maxCount: 1,
+    },
+  ]),
+  updateNews
+);
 
-// ==========================================
-// ADMIN ROUTES
-// ==========================================
-
-// Get all news
-router.get("/", protect, admin, getNews);
-
-// Create news
-router.post("/", protect, admin, createNews);
-
-// Update news
-router.put("/:id", protect, admin, updateNews);
-
-// Delete news
-router.delete("/:id", protect, admin, deleteNews);
+// Delete News
+router.delete("/:id", deleteNews);
 
 export default router;

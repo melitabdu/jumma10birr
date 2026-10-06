@@ -16,10 +16,10 @@ import adminAuthRoutes from "./routes/adminAuthRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
 import assetRoutes from "./routes/assetRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
-import newsRoutes from "./routes/newsRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import newsRoutes from "./routes/newsRoutes.js";
 // ===== Middleware =====
 import {
   notFound,
@@ -116,6 +116,7 @@ app.use("/api/transfers", transferRoutes);
 app.use("/api/admin", adminAuthRoutes);
 
 app.use("/api/impact", impactRoutes);
+app.use("/api/news", newsRoutes);
 
 app.use("/api/proposals", proposalRoutes);
 
@@ -123,7 +124,6 @@ app.use("/api/assets", assetRoutes);
 
 app.use("/api/announcements", announcementRoutes);
 
-app.use("/api/news", newsRoutes);
 
 
 
