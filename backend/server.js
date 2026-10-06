@@ -19,7 +19,7 @@ import announcementRoutes from "./routes/announcementRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
-import pushNotificationRoutes from "./routes/pushNotificationRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 // ===== Middleware =====
 import {
   notFound,
@@ -124,7 +124,10 @@ app.use("/api/assets", assetRoutes);
 app.use("/api/announcements", announcementRoutes);
 
 app.use("/api/news", newsRoutes);
-app.use("/api/notifications", pushNotificationRoutes);
+
+
+
+app.use("/api/notifications", notificationRoutes);
 // ======================================================
 // CHATBOT ROUTES
 // ======================================================
