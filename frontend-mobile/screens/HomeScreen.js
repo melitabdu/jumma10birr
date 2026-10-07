@@ -15,6 +15,10 @@ import {
   FlatList,
 } from "react-native";
 
+import {
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+
 import { Ionicons } from "@expo/vector-icons";
 
 import ImpactCard from "../components/home/ImpactCard";
@@ -26,7 +30,9 @@ import { getAnnouncements } from "../services/announcementService";
 
 import Header from "../components/home/Header";
 
-import { registerForPushNotificationsAsync} from "../services/notificationService";
+import {
+  registerForPushNotificationsAsync,
+} from "../services/notificationService";
 
 
 /* ======================================================
@@ -139,6 +145,7 @@ const quickServices = [
 ====================================================== */
 
 export default function HomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
 
   /* ====================================================
      DATA STATES
@@ -167,7 +174,6 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   useEffect(() => {
-
     fetchImpact();
 
     fetchProjects();
@@ -175,7 +181,6 @@ export default function HomeScreen({ navigation }) {
     fetchAnnouncements();
 
     registerNotifications();
-
   }, []);
 
 
@@ -184,20 +189,14 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const registerNotifications = async () => {
-
     try {
-
       await registerForPushNotificationsAsync();
-
     } catch (error) {
-
       console.log(
         "Notification Registration Error:",
         error
       );
-
     }
-
   };
 
 
@@ -206,29 +205,19 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   useEffect(() => {
-
     const interval = setInterval(() => {
-
       const nextIndex =
         (currentIndex + 1) % banners.length;
 
-
       sliderRef.current?.scrollTo({
-
         x: nextIndex * width,
-
         animated: true,
-
       });
 
-
       setCurrentIndex(nextIndex);
-
     }, 3000);
 
-
     return () => clearInterval(interval);
-
   }, [currentIndex]);
 
 
@@ -237,35 +226,27 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const fetchImpact = async () => {
-
     try {
-
       const data = await getImpact();
-
 
       console.log(
         "Impact Data:",
         data
       );
 
-
       setImpact(
         Array.isArray(data)
           ? data
           : []
       );
-
     } catch (error) {
-
       console.log(
         "Impact Error:",
         error
       );
 
       setImpact([]);
-
     }
-
   };
 
 
@@ -274,35 +255,27 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const fetchProjects = async () => {
-
     try {
-
       const data = await getProjects();
-
 
       console.log(
         "Projects Data:",
         data
       );
 
-
       setProjects(
         Array.isArray(data)
           ? data
           : []
       );
-
     } catch (error) {
-
       console.log(
         "Projects Error:",
         error
       );
 
       setProjects([]);
-
     }
-
   };
 
 
@@ -311,29 +284,23 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const fetchAnnouncements = async () => {
-
     try {
-
       const data =
         await getAnnouncements();
-
 
       console.log(
         "Announcements Data:",
         data
       );
 
-
       const announcementList =
         Array.isArray(data)
           ? data
           : [];
 
-
       setAnnouncements(
         announcementList
       );
-
 
       /* -----------------------------------------------
          COUNT UNREAD ANNOUNCEMENTS
@@ -345,26 +312,19 @@ export default function HomeScreen({ navigation }) {
             !announcement.isRead
         ).length;
 
-
       setUnreadCount(
         unread
       );
-
-
     } catch (error) {
-
       console.log(
         "Announcement Error:",
         error
       );
 
-
       setAnnouncements([]);
 
       setUnreadCount(0);
-
     }
-
   };
 
 
@@ -378,12 +338,10 @@ export default function HomeScreen({ navigation }) {
   const openAnnouncementPopup = (
     announcement = null
   ) => {
-
     console.log(
       "Opening Announcement:",
       announcement
     );
-
 
     navigation.navigate(
       "Announcement",
@@ -392,7 +350,6 @@ export default function HomeScreen({ navigation }) {
           announcement,
       }
     );
-
   };
 
 
@@ -401,11 +358,9 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const handleNotificationPress = () => {
-
     console.log(
       "Notification bell pressed"
     );
-
 
     /* -----------------------------------------------
        FIND UNREAD ANNOUNCEMENT
@@ -417,36 +372,29 @@ export default function HomeScreen({ navigation }) {
           !announcement.isRead
       );
 
-
     /* -----------------------------------------------
        OPEN UNREAD ANNOUNCEMENT
     ------------------------------------------------ */
 
     if (unreadAnnouncement) {
-
       openAnnouncementPopup(
         unreadAnnouncement
       );
 
       return;
-
     }
-
 
     /* -----------------------------------------------
        OPEN LATEST ANNOUNCEMENT
     ------------------------------------------------ */
 
     if (announcements.length > 0) {
-
       openAnnouncementPopup(
         announcements[0]
       );
 
       return;
-
     }
-
 
     /* -----------------------------------------------
        NO ANNOUNCEMENTS
@@ -455,7 +403,6 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate(
       "Announcement"
     );
-
   };
 
 
@@ -466,12 +413,10 @@ export default function HomeScreen({ navigation }) {
   const handleQuickServicePress = (
     service
   ) => {
-
     console.log(
       "Quick Service pressed:",
       service.id
     );
-
 
     /* ==================================================
        ANNOUNCEMENT
@@ -481,11 +426,9 @@ export default function HomeScreen({ navigation }) {
       service.id ===
       "announcement"
     ) {
-
       if (
         announcements.length > 0
       ) {
-
         const announcement =
           announcements.find(
             (item) =>
@@ -493,125 +436,97 @@ export default function HomeScreen({ navigation }) {
           ) ||
           announcements[0];
 
-
         openAnnouncementPopup(
           announcement
         );
-
       } else {
-
         navigation.navigate(
           "Announcement"
         );
-
       }
 
-    
       return;
-
     }
 
 
     /* ==================================================
        QIBLA
-       
-       FUNCTIONALITY WILL BE ADDED LATER
     ================================================== */
- if (
-  service.id ===
-  "qibla"
-) {
 
-  navigation.navigate(
-    "QiblaScreen"
-  );
+    if (
+      service.id ===
+      "qibla"
+    ) {
+      navigation.navigate(
+        "QiblaScreen"
+      );
 
-     return;
-
+      return;
     }
 
 
     /* ==================================================
        MOSQUE
-       
-       FUNCTIONALITY WILL BE ADDED LATER
     ================================================== */
 
     if (
       service.id ===
       "mosque"
     ) {
-
       console.log(
         "Nearest Mosque functionality will be added later."
       );
 
       return;
-
     }
 
 
     /* ==================================================
        CHATBOT
-       
-       FUNCTIONALITY WILL BE ADDED LATER
     ================================================== */
 
-   if (
-  service.id ===
-  "chatbot"
-) {
-
-  navigation.navigate("ChatbotScreen");
-
-
-
-
+    if (
+      service.id ===
+      "chatbot"
+    ) {
+      navigation.navigate(
+        "ChatbotScreen"
+      );
 
       return;
-
     }
 
 
     /* ==================================================
        NEWS
-       
-       FUNCTIONALITY WILL BE ADDED LATER
     ================================================== */
 
     if (
       service.id ===
       "news"
     ) {
-
-      console.log(
-        "News functionality will be added later."
+      navigation.navigate(
+        "News"
       );
 
       return;
-
     }
 
 
     /* ==================================================
        ZAKAT
-       
-       FUNCTIONALITY WILL BE ADDED LATER
     ================================================== */
 
     if (
       service.id ===
       "zakat"
     ) {
-
       console.log(
         "Zakat Calculator functionality will be added later."
       );
 
       return;
-
     }
-
   };
 
 
@@ -620,11 +535,9 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const handleDonate = () => {
-
     navigation.navigate(
       "Donate"
     );
-
   };
 
 
@@ -633,11 +546,20 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   const handleViewProjects = () => {
-
     navigation.navigate(
       "Projects"
     );
+  };
 
+
+  /* ====================================================
+     FLOATING CHATBOT
+  ==================================================== */
+
+  const handleFloatingChatbot = () => {
+    navigation.navigate(
+      "ChatbotScreen"
+    );
   };
 
 
@@ -646,7 +568,6 @@ export default function HomeScreen({ navigation }) {
   ==================================================== */
 
   return (
-
     <View
       style={
         styles.screen
@@ -654,17 +575,24 @@ export default function HomeScreen({ navigation }) {
     >
 
       <ScrollView
-
         showsVerticalScrollIndicator={
           false
         }
+        contentContainerStyle={[
+          styles.scrollContent,
 
-        contentContainerStyle={
-          styles.scrollContent
-        }
-
+          /*
+          Extra bottom space so the floating
+          chatbot does not cover the last
+          content on the Home screen.
+          */
+          {
+            paddingBottom:
+              120 +
+              insets.bottom,
+          },
+        ]}
       >
-
 
         {/* ==================================================
             HEADER
@@ -675,19 +603,14 @@ export default function HomeScreen({ navigation }) {
             styles.headerContainer
           }
         >
-
           <Header
-
             onNotificationPress={
               handleNotificationPress
             }
-
             unreadCount={
               unreadCount
             }
-
           />
-
         </View>
 
 
@@ -701,29 +624,22 @@ export default function HomeScreen({ navigation }) {
           }
         >
 
-
           {/* ==================================================
               BANNER
           ================================================== */}
 
           <ScrollView
-
             ref={
               sliderRef
             }
-
             horizontal
-
             pagingEnabled
-
             showsHorizontalScrollIndicator={
               false
             }
-
             style={
               styles.slider
             }
-
           >
 
             {banners.map(
@@ -733,29 +649,22 @@ export default function HomeScreen({ navigation }) {
               ) => (
 
                 <View
-
                   key={
                     index
                   }
-
                   style={
                     styles.bannerContainer
                   }
-
                 >
 
                   <Image
-
                     source={
                       image
                     }
-
                     style={
                       styles.bannerImage
                     }
-
                     resizeMode="cover"
-
                   />
 
 
@@ -766,22 +675,17 @@ export default function HomeScreen({ navigation }) {
                       styles.textContainer
                     }
                   >
-
                     <Text
                       style={
                         styles.bannerMessage
                       }
                     >
-
                       Together We Give •
                       Together We Grow
-
                     </Text>
-
                   </View>
 
                 </View>
-
               )
             )}
 
@@ -805,18 +709,15 @@ export default function HomeScreen({ navigation }) {
               ) => (
 
                 <View
-
                   key={
                     index
                   }
-
                   style={[
                     styles.bannerDot,
 
                     index === currentIndex &&
                       styles.activeBannerDot,
                   ]}
-
                 />
 
               )
@@ -850,20 +751,15 @@ export default function HomeScreen({ navigation }) {
                     styles.quickServicesTitle
                   }
                 >
-
                   Quick Services
-
                 </Text>
-
 
                 <Text
                   style={
                     styles.quickServicesSubtitle
                   }
                 >
-
                   Islamic services at your fingertips
-
                 </Text>
 
               </View>
@@ -874,19 +770,13 @@ export default function HomeScreen({ navigation }) {
                   styles.servicesHeaderIcon
                 }
               >
-
                 <Ionicons
-
                   name="apps-outline"
-
                   size={20}
-
                   color={
                     COLORS.primary
                   }
-
                 />
-
               </View>
 
             </View>
@@ -895,46 +785,36 @@ export default function HomeScreen({ navigation }) {
             {/* HORIZONTAL FLAT LIST */}
 
             <FlatList
-
               data={
                 quickServices
               }
-
               horizontal
-
               showsHorizontalScrollIndicator={
                 false
               }
-
               keyExtractor={
                 (item) =>
                   item.id
               }
-
               contentContainerStyle={
                 styles.quickServicesList
               }
-
               renderItem={({
                 item,
               }) => (
 
                 <TouchableOpacity
-
                   activeOpacity={
                     0.75
                   }
-
                   style={
                     styles.quickServiceItem
                   }
-
                   onPress={() =>
                     handleQuickServicePress(
                       item
                     )
                   }
-
                 >
 
                   {/* CIRCLE */}
@@ -946,19 +826,15 @@ export default function HomeScreen({ navigation }) {
                   >
 
                     <Ionicons
-
                       name={
                         item.icon
                       }
-
                       size={
                         28
                       }
-
                       color={
                         COLORS.primary
                       }
-
                     />
 
 
@@ -979,11 +855,9 @@ export default function HomeScreen({ navigation }) {
                               styles.serviceNotificationBadgeText
                             }
                           >
-
                             {unreadCount > 9
                               ? "9+"
                               : unreadCount}
-
                           </Text>
 
                         </View>
@@ -1000,9 +874,7 @@ export default function HomeScreen({ navigation }) {
                       styles.quickServiceText
                     }
                   >
-
                     {item.title}
-
                   </Text>
 
 
@@ -1013,27 +885,15 @@ export default function HomeScreen({ navigation }) {
                       styles.quickServiceSubtitleItem
                     }
                   >
-
                     {item.subtitle}
-
                   </Text>
 
                 </TouchableOpacity>
 
               )}
-
             />
 
           </View>
-
-
-          {/* ==================================================
-              NOTE:
-              ANNOUNCEMENT LIST WAS REMOVED FROM HERE.
-              
-              ANNOUNCEMENTS ARE STILL FULLY FUNCTIONAL
-              THROUGH THE HEADER BELL AND QUICK SERVICE.
-          ================================================== */}
 
 
           {/* ==================================================
@@ -1045,9 +905,7 @@ export default function HomeScreen({ navigation }) {
               styles.sectionTitle
             }
           >
-
             Our Impact
-
           </Text>
 
 
@@ -1064,9 +922,7 @@ export default function HomeScreen({ navigation }) {
                   styles.emptyText
                 }
               >
-
                 No Impact Data Available.
-
               </Text>
 
             ) : (
@@ -1078,21 +934,17 @@ export default function HomeScreen({ navigation }) {
                 ) => (
 
                   <ImpactCard
-
                     key={
                       item._id ||
                       item.id ||
                       index
                     }
-
                     title={
                       item.title
                     }
-
                     count={
                       item.count
                     }
-
                   />
 
                 )
@@ -1112,9 +964,7 @@ export default function HomeScreen({ navigation }) {
               styles.sectionTitle
             }
           >
-
             Ongoing Projects
-
           </Text>
 
 
@@ -1125,15 +975,12 @@ export default function HomeScreen({ navigation }) {
                 styles.emptyText
               }
             >
-
               No Ongoing Projects Available.
-
             </Text>
 
           ) : (
 
             <>
-
 
               <View
                 style={
@@ -1142,12 +989,10 @@ export default function HomeScreen({ navigation }) {
               >
 
                 {projects
-
                   .slice(
                     0,
                     4
                   )
-
                   .map(
                     (
                       project,
@@ -1155,33 +1000,26 @@ export default function HomeScreen({ navigation }) {
                     ) => (
 
                       <ProjectCard
-
                         key={
                           project._id ||
                           project.id ||
                           index
                         }
-
                         title={
                           project.title
                         }
-
                         description={
                           project.description
                         }
-
                         progress={
                           project.progress
                         }
-
                         project={
                           project
                         }
-
                         navigation={
                           navigation
                         }
-
                       />
 
                     )
@@ -1195,19 +1033,15 @@ export default function HomeScreen({ navigation }) {
               {projects.length > 4 && (
 
                 <TouchableOpacity
-
                   style={
                     styles.seeMoreButton
                   }
-
                   onPress={
                     handleViewProjects
                   }
-
                   activeOpacity={
                     0.8
                   }
-
                 >
 
                   <Text
@@ -1215,22 +1049,15 @@ export default function HomeScreen({ navigation }) {
                       styles.seeMoreText
                     }
                   >
-
                     See More Projects
-
                   </Text>
 
-
                   <Ionicons
-
                     name="arrow-forward"
-
                     size={18}
-
                     color={
                       COLORS.white
                     }
-
                   />
 
                 </TouchableOpacity>
@@ -1261,15 +1088,11 @@ export default function HomeScreen({ navigation }) {
           >
 
             <Ionicons
-
               name="heart"
-
               size={25}
-
               color={
                 COLORS.primary
               }
-
             />
 
           </View>
@@ -1280,9 +1103,7 @@ export default function HomeScreen({ navigation }) {
               styles.donateTitle
             }
           >
-
             Change a Life Today
-
           </Text>
 
 
@@ -1291,29 +1112,23 @@ export default function HomeScreen({ navigation }) {
               styles.donateText
             }
           >
-
             Your donation helps build mosques,
             support students, provide food
             assistance, and uplift communities
             across Ethiopia.
-
           </Text>
 
 
           <TouchableOpacity
-
             activeOpacity={
               0.8
             }
-
             style={
               styles.donateButton
             }
-
             onPress={
               handleDonate
             }
-
           >
 
             <Text
@@ -1321,22 +1136,15 @@ export default function HomeScreen({ navigation }) {
                 styles.donateButtonText
               }
             >
-
               Donate Now
-
             </Text>
 
-
             <Ionicons
-
               name="arrow-forward"
-
               size={18}
-
               color={
                 COLORS.white
               }
-
             />
 
           </TouchableOpacity>
@@ -1359,9 +1167,7 @@ export default function HomeScreen({ navigation }) {
               styles.sectionTitle
             }
           >
-
             What Donors Say
-
           </Text>
 
 
@@ -1372,15 +1178,12 @@ export default function HomeScreen({ navigation }) {
             ) => (
 
               <View
-
                 key={
                   index
                 }
-
                 style={
                   styles.testimonialCard
                 }
-
               >
 
                 <View
@@ -1390,15 +1193,11 @@ export default function HomeScreen({ navigation }) {
                 >
 
                   <Ionicons
-
                     name="chatbox-ellipses"
-
                     size={18}
-
                     color={
                       COLORS.primary
                     }
-
                   />
 
                 </View>
@@ -1409,9 +1208,7 @@ export default function HomeScreen({ navigation }) {
                     styles.testimonialMessage
                   }
                 >
-
                   "{item.message}"
-
                 </Text>
 
 
@@ -1420,9 +1217,7 @@ export default function HomeScreen({ navigation }) {
                     styles.testimonialName
                   }
                 >
-
                   - {item.name}
-
                 </Text>
 
               </View>
@@ -1434,10 +1229,41 @@ export default function HomeScreen({ navigation }) {
 
       </ScrollView>
 
+
+      {/* ==================================================
+          FLOATING CHATBOT BUTTON
+
+          This stays fixed above the bottom
+          navigation/tab bar.
+      ================================================== */}
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={
+          handleFloatingChatbot
+        }
+        style={[
+          styles.floatingChatbot,
+          {
+            bottom:
+              78 +
+              insets.bottom,
+          },
+        ]}
+      >
+
+        <Ionicons
+          name="sparkles"
+          size={28}
+          color={
+            COLORS.white
+          }
+        />
+
+      </TouchableOpacity>
+
     </View>
-
   );
-
 }
 
 
@@ -1452,19 +1278,14 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   screen: {
-
     flex: 1,
-
     backgroundColor:
       COLORS.white,
-
   },
 
 
   scrollContent: {
-
     paddingBottom: 25,
-
   },
 
 
@@ -1473,9 +1294,7 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   headerContainer: {
-
     paddingHorizontal: 20,
-
   },
 
 
@@ -1484,11 +1303,8 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   container: {
-
     flex: 1,
-
     padding: 20,
-
   },
 
 
@@ -1497,43 +1313,29 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   slider: {
-
     marginTop: 20,
-
     marginBottom: 8,
-
   },
 
 
   bannerContainer: {
-
     width:
       width - 40,
-
     height: 250,
-
     marginRight: 10,
-
     borderRadius: 20,
-
     overflow: "hidden",
-
   },
 
 
   bannerImage: {
-
     width: "100%",
-
     height: "100%",
-
     position: "absolute",
-
   },
 
 
   textContainer: {
-
     position: "absolute",
 
     top: "50%",
@@ -1541,15 +1343,12 @@ const styles = StyleSheet.create({
     left: "50%",
 
     transform: [
-
       {
         translateX: -120,
       },
-
       {
         translateY: -20,
       },
-
     ],
 
     backgroundColor:
@@ -1564,12 +1363,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
 
     justifyContent: "center",
-
   },
 
 
   bannerMessage: {
-
     color:
       COLORS.white,
 
@@ -1578,7 +1375,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
 
     textAlign: "center",
-
   },
 
 
@@ -1587,7 +1383,6 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   bannerDots: {
-
     flexDirection:
       "row",
 
@@ -1598,12 +1393,10 @@ const styles = StyleSheet.create({
       "center",
 
     marginBottom: 12,
-
   },
 
 
   bannerDot: {
-
     width: 7,
 
     height: 7,
@@ -1614,17 +1407,14 @@ const styles = StyleSheet.create({
       "#D5D5D5",
 
     marginHorizontal: 4,
-
   },
 
 
   activeBannerDot: {
-
     width: 20,
 
     backgroundColor:
       COLORS.primary,
-
   },
 
 
@@ -1633,19 +1423,16 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   quickServicesSection: {
-
     marginTop: 2,
 
     marginBottom: 12,
 
     backgroundColor:
       COLORS.white,
-
   },
 
 
   quickServicesHeader: {
-
     flexDirection:
       "row",
 
@@ -1656,12 +1443,10 @@ const styles = StyleSheet.create({
       "space-between",
 
     marginBottom: 8,
-
   },
 
 
   quickServicesTitle: {
-
     fontSize: 20,
 
     fontWeight:
@@ -1669,24 +1454,20 @@ const styles = StyleSheet.create({
 
     color:
       COLORS.primary,
-
   },
 
 
   quickServicesSubtitle: {
-
     fontSize: 12,
 
     color:
       COLORS.gray,
 
     marginTop: 3,
-
   },
 
 
   servicesHeaderIcon: {
-
     width: 38,
 
     height: 38,
@@ -1701,33 +1482,27 @@ const styles = StyleSheet.create({
 
     justifyContent:
       "center",
-
   },
 
 
   quickServicesList: {
-
     paddingVertical: 8,
 
     paddingRight: 10,
-
   },
 
 
   quickServiceItem: {
-
     width: 88,
 
     alignItems:
       "center",
 
     marginRight: 12,
-
   },
 
 
   quickServiceCircle: {
-
     width: 64,
 
     height: 64,
@@ -1751,11 +1526,9 @@ const styles = StyleSheet.create({
     elevation: 3,
 
     shadowOffset: {
-
       width: 0,
 
       height: 2,
-
     },
 
     shadowOpacity: 0.10,
@@ -1764,12 +1537,10 @@ const styles = StyleSheet.create({
 
     position:
       "relative",
-
   },
 
 
   quickServiceText: {
-
     marginTop: 7,
 
     fontSize: 12,
@@ -1782,12 +1553,10 @@ const styles = StyleSheet.create({
 
     textAlign:
       "center",
-
   },
 
 
   quickServiceSubtitleItem: {
-
     marginTop: 2,
 
     fontSize: 9,
@@ -1797,12 +1566,10 @@ const styles = StyleSheet.create({
 
     textAlign:
       "center",
-
   },
 
 
   serviceNotificationBadge: {
-
     position:
       "absolute",
 
@@ -1829,12 +1596,10 @@ const styles = StyleSheet.create({
 
     borderColor:
       COLORS.white,
-
   },
 
 
   serviceNotificationBadgeText: {
-
     color:
       COLORS.white,
 
@@ -1842,7 +1607,6 @@ const styles = StyleSheet.create({
 
     fontWeight:
       "bold",
-
   },
 
 
@@ -1851,7 +1615,6 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   sectionTitle: {
-
     fontSize: 20,
 
     fontWeight:
@@ -1863,7 +1626,6 @@ const styles = StyleSheet.create({
 
     color:
       COLORS.primary,
-
   },
 
 
@@ -1872,14 +1634,12 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   emptyText: {
-
     color:
       COLORS.gray,
 
     fontSize: 14,
 
     marginBottom: 10,
-
   },
 
 
@@ -1888,7 +1648,6 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   impactContainer: {
-
     flexDirection:
       "row",
 
@@ -1897,7 +1656,6 @@ const styles = StyleSheet.create({
 
     justifyContent:
       "space-between",
-
   },
 
 
@@ -1906,7 +1664,6 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   projectContainer: {
-
     flexDirection:
       "row",
 
@@ -1915,12 +1672,10 @@ const styles = StyleSheet.create({
 
     justifyContent:
       "space-between",
-
   },
 
 
   seeMoreButton: {
-
     marginTop: 10,
 
     marginBottom: 20,
@@ -1944,12 +1699,10 @@ const styles = StyleSheet.create({
       "center",
 
     gap: 7,
-
   },
 
 
   seeMoreText: {
-
     color:
       COLORS.white,
 
@@ -1957,7 +1710,6 @@ const styles = StyleSheet.create({
 
     fontWeight:
       "bold",
-
   },
 
 
@@ -1966,7 +1718,6 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   donateContainer: {
-
     marginTop: 20,
 
     marginHorizontal: 20,
@@ -1987,12 +1738,10 @@ const styles = StyleSheet.create({
 
     borderColor:
       COLORS.primaryBorder,
-
   },
 
 
   donateIcon: {
-
     width: 52,
 
     height: 52,
@@ -2009,12 +1758,10 @@ const styles = StyleSheet.create({
       "center",
 
     marginBottom: 10,
-
   },
 
 
   donateTitle: {
-
     fontSize: 25,
 
     fontWeight:
@@ -2027,12 +1774,10 @@ const styles = StyleSheet.create({
       "center",
 
     marginBottom: 10,
-
   },
 
 
   donateText: {
-
     fontSize: 15,
 
     lineHeight: 23,
@@ -2044,12 +1789,10 @@ const styles = StyleSheet.create({
       "center",
 
     marginBottom: 20,
-
   },
 
 
   donateButton: {
-
     backgroundColor:
       COLORS.primary,
 
@@ -2068,12 +1811,10 @@ const styles = StyleSheet.create({
       "center",
 
     gap: 8,
-
   },
 
 
   donateButtonText: {
-
     color:
       COLORS.white,
 
@@ -2084,7 +1825,6 @@ const styles = StyleSheet.create({
 
     textAlign:
       "center",
-
   },
 
 
@@ -2093,16 +1833,13 @@ const styles = StyleSheet.create({
   ==================================================== */
 
   testimonialContainer: {
-
     marginHorizontal: 20,
 
     marginBottom: 40,
-
   },
 
 
   testimonialCard: {
-
     backgroundColor:
       COLORS.white,
 
@@ -2120,22 +1857,18 @@ const styles = StyleSheet.create({
       "#F0F0F0",
 
     shadowOffset: {
-
       width: 0,
 
       height: 2,
-
     },
 
     shadowOpacity: 0.10,
 
     shadowRadius: 4,
-
   },
 
 
   quoteIcon: {
-
     width: 34,
 
     height: 34,
@@ -2152,12 +1885,10 @@ const styles = StyleSheet.create({
       "center",
 
     marginBottom: 10,
-
   },
 
 
   testimonialMessage: {
-
     fontSize: 16,
 
     lineHeight: 24,
@@ -2167,12 +1898,10 @@ const styles = StyleSheet.create({
 
     fontStyle:
       "italic",
-
   },
 
 
   testimonialName: {
-
     marginTop: 15,
 
     fontSize: 16,
@@ -2185,7 +1914,53 @@ const styles = StyleSheet.create({
 
     textAlign:
       "right",
+  },
 
+
+  /* ====================================================
+     FLOATING CHATBOT BUTTON
+  ==================================================== */
+
+  floatingChatbot: {
+    position: "absolute",
+
+    right: 20,
+
+    width: 62,
+
+    height: 62,
+
+    borderRadius: 31,
+
+    backgroundColor:
+      COLORS.primary,
+
+    alignItems:
+      "center",
+
+    justifyContent:
+      "center",
+
+    elevation: 8,
+
+    shadowColor: "#000",
+
+    shadowOffset: {
+      width: 0,
+
+      height: 4,
+    },
+
+    shadowOpacity: 0.28,
+
+    shadowRadius: 6,
+
+    zIndex: 999,
+
+    borderWidth: 2,
+
+    borderColor:
+      COLORS.white,
   },
 
 });

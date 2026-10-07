@@ -5,7 +5,7 @@ import {
 } from "@react-navigation/native-stack";
 
 import MainTabs from "./MainTabs";
-
+import NewsScreen from "../screens/NewsScreen";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 
@@ -64,6 +64,10 @@ export default function MainStack() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+  name="News"
+  component={NewsScreen}
+/>
 
       {/* ================= PROJECT DETAILS ================= */}
       <Stack.Screen
