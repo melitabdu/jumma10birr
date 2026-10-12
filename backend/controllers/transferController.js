@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Transfer from "../models/transferModel.js";
-import Donation from "../models/donationModel.js";
+import {Donation} from "../models/donationModel.js";
 import Mosque from "../models/mosqueModel.js";
 
 /**
