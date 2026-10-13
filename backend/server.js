@@ -20,6 +20,7 @@ import chatbotRoutes from "./routes/chatbotRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
+import applyFabricToken from "./services/applyFabricToken.js";
 // ===== Middleware =====
 import {
   notFound,
@@ -193,6 +194,55 @@ app.get("/api/supabase-test", async (req, res) => {
 app.use(notFound);
 
 app.use(errorHandler);
+
+app.post("/api/telebirr-diagnostic", async (req, res) => {
+  const expectedKey = process.env.TELEBIRR_DIAGNOSTIC_KEY;
+  const providedKey = req.get("x-diagnostic-key");
+
+  if (!expectedKey || !providedKey || providedKey !== expectedKey) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
+  try {
+    const result = await applyFabricToken();
+
+    const hasToken = Boolean(
+      result?.token ||
+      result?.accessToken ||
+      result?.data?.token
+    );
+
+    return res.status(200).json({
+      success: Boolean(result?.success) && hasToken,
+      hasToken,
+      providerCode: result?.code ?? null,
+      providerMessage: result?.message ?? null,
+    });
+  } catch (error) {
+    console.error("Telebirr diagnostic failed:", {
+      status: error.response?.status ?? null,
+      code: error.code ?? null,
+      message: error.message,
+    });
+
+    return res.status(200).json({
+      success: false,
+      hasToken: false,
+      httpStatus: error.response?.status ?? null,
+      errorCode: error.code ?? null,
+      message: error.response?.status
+        ? "Telebirr returned an HTTP error"
+        : error.code === "ECONNABORTED" ||
+            error.code === "ETIMEDOUT"
+          ? "Connection timed out"
+          : "Connection or request failed",
+    });
+  }
+});
+
 
 // ======================================================
 // START SERVER
