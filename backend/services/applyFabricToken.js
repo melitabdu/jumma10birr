@@ -13,7 +13,7 @@ export default async function applyFabricToken() {
         "Content-Type": "application/json",
         "X-APP-Key": telebirrConfig.fabricAppId,
       },
-      timeout: 15000,
+      timeout: 30000,
     }
   );
 
