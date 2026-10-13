@@ -26,6 +26,7 @@
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.3",
+    "jsrsasign": "^11.1.5",
     "jwa": "^2.0.1",
     "jws": "^4.0.1",
     "mongod": "^2.0.0",
