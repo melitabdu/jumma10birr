@@ -27,6 +27,7 @@ import {
   notFound,
   errorHandler,
 } from "./middleware/errorMiddleware.js";
+import fs from "node:fs";
 
 // ======================================================
 // LOAD ENVIRONMENT VARIABLES
@@ -102,6 +103,12 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+console.log("Telebirr certificate file check:", {
+  path: process.env.NODE_EXTRA_CA_CERTS,
+  exists: process.env.NODE_EXTRA_CA_CERTS
+    ? fs.existsSync(process.env.NODE_EXTRA_CA_CERTS)
+    : false,
+});
 
 // ======================================================
 // CORS SETUP
