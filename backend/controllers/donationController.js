@@ -148,6 +148,7 @@ async function createPreOrder({ outTradeNo, amount, title }) {
   return prepayId;
 }
 
+
 function createCheckoutUrl(prepayId) {
   const params = {
     appid: telebirrConfig.merchantAppId,
@@ -167,8 +168,14 @@ function createCheckoutUrl(prepayId) {
     trade_type: "Checkout",
   });
 
-  return `${telebirrConfig.webBaseUrl}?${query.toString()}`;
+  const separator = telebirrConfig.webBaseUrl.includes("?")
+    ? (telebirrConfig.webBaseUrl.endsWith("?") ||
+       telebirrConfig.webBaseUrl.endsWith("&") ? "" : "&")
+    : "?";
+
+  return `${telebirrConfig.webBaseUrl}${separator}${query.toString()}`;
 }
+
 
 export const initiateDonation = async (req, res) => {
   let donation;
@@ -218,7 +225,7 @@ export const initiateDonation = async (req, res) => {
     const prepayId = await createPreOrder({
       outTradeNo,
       amount: numericAmount,
-      title: `EIASC Donation - ${outTradeNo}`,
+      title: `EIASC Donation ${outTradeNo}`,
     });
 
     const paymentUrl = createCheckoutUrl(prepayId);
@@ -230,12 +237,14 @@ export const initiateDonation = async (req, res) => {
       status: donation.status,
     });
   } catch (error) {
-    console.error("Telebirr initiation failed:", {
-      status: error.response?.status ?? null,
-      providerCode: error.response?.data?.code ?? null,
-      providerMessage: error.response?.data?.message ?? null,
-      message: error.message,
-    });
+    
+console.error("Telebirr initiation failed:", {
+  status: error.response?.status ?? null,
+  providerResponse: error.response?.data ?? null,
+  providerUrl: error.config?.url ?? null,
+  message: error.message,
+});
+
 
     return res.status(502).json({
       success: false,
