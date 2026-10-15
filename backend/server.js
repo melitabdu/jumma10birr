@@ -21,6 +21,7 @@ import documentRoutes from "./routes/documentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
 import applyFabricToken from "./services/applyFabricToken.js";
+import tls from "node:tls";
 // ===== Middleware =====
 import {
   notFound,
@@ -32,6 +33,27 @@ import {
 // ======================================================
 
 dotenv.config();
+console.log("=== Telebirr TLS Diagnostics ===");
+console.log("Node version:", process.version);
+console.log(
+  "NODE_USE_SYSTEM_CA:",
+  process.env.NODE_USE_SYSTEM_CA
+);
+
+try {
+  console.log(
+    "System CA count:",
+    tls.getCACertificates("system").length
+  );
+  console.log(
+    "Default CA count:",
+    tls.getCACertificates("default").length
+  );
+} catch (error) {
+  console.error("TLS diagnostic error:", error.message);
+}
+
+console.log("=== End TLS Diagnostics ===");
 
 // ======================================================
 // CONNECT DATABASE
@@ -190,11 +212,6 @@ app.get("/api/supabase-test", async (req, res) => {
 // ======================================================
 // ERROR HANDLERS
 // ======================================================
-
-app.use(notFound);
-
-app.use(errorHandler);
-
 app.post("/api/telebirr-diagnostic", async (req, res) => {
   const expectedKey = process.env.TELEBIRR_DIAGNOSTIC_KEY;
   const providedKey = req.get("x-diagnostic-key");
@@ -242,6 +259,11 @@ app.post("/api/telebirr-diagnostic", async (req, res) => {
     });
   }
 });
+app.use(notFound);
+
+app.use(errorHandler);
+
+
 
 
 // ======================================================
