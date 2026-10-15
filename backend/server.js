@@ -54,6 +54,35 @@ try {
 }
 
 console.log("=== End TLS Diagnostics ===");
+// Temporary Telebirr TLS connection diagnostic
+const telebirrTlsTest = tls.connect({
+  host: "developerportal.ethiotelebirr.et",
+  port: 38443,
+  servername: "developerportal.ethiotelebirr.et",
+  rejectUnauthorized: true,
+  timeout: 10000,
+});
+
+telebirrTlsTest.on("secureConnect", () => {
+  console.log("Telebirr TLS authorized:", telebirrTlsTest.authorized);
+  console.log(
+    "Telebirr TLS authorization error:",
+    telebirrTlsTest.authorizationError ?? null
+  );
+  telebirrTlsTest.end();
+});
+
+telebirrTlsTest.on("error", (error) => {
+  console.error("Telebirr TLS connection diagnostic:", {
+    code: error.code ?? null,
+    message: error.message,
+  });
+});
+
+telebirrTlsTest.setTimeout(10000, () => {
+  console.error("Telebirr TLS diagnostic timed out");
+  telebirrTlsTest.destroy();
+});
 
 // ======================================================
 // CONNECT DATABASE
