@@ -27,7 +27,19 @@ import {
   notFound,
   errorHandler,
 } from "./middleware/errorMiddleware.js";
+
 import fs from "node:fs";
+import path from "node:path";
+
+const certPath = process.env.NODE_EXTRA_CA_CERTS;
+
+console.log("Telebirr certificate path diagnostic:", {
+  workingDirectory: process.cwd(),
+  certificatePath: certPath,
+  certificateExists: certPath ? fs.existsSync(certPath) : false,
+  workingDirectoryFiles: fs.readdirSync(process.cwd()).slice(0, 40),
+  backendSubfolderExists: fs.existsSync(path.join(process.cwd(), "backend")),
+});
 
 // ======================================================
 // LOAD ENVIRONMENT VARIABLES
@@ -103,12 +115,6 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-console.log("Telebirr certificate file check:", {
-  path: process.env.NODE_EXTRA_CA_CERTS,
-  exists: process.env.NODE_EXTRA_CA_CERTS
-    ? fs.existsSync(process.env.NODE_EXTRA_CA_CERTS)
-    : false,
-});
 
 // ======================================================
 // CORS SETUP
