@@ -176,7 +176,7 @@ export async function queryTelebirrOrder(outTradeNo) {
       headers: {
         "Content-Type": "application/json",
         "X-APP-Key": telebirrConfig.fabricAppId,
-        Authorization: `Bearer ${token}`,
+        Authorization: token,
       },
     }
   );
