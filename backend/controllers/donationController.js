@@ -151,7 +151,40 @@ async function createPreOrder({ outTradeNo, amount, title }) {
 
   return prepayId;
 }
+export async function queryTelebirrOrder(outTradeNo) {
+  const token = await getFabricToken();
 
+  const requestObject = {
+    timestamp: Math.floor(Date.now() / 1000).toString(),
+    nonce_str: crypto.randomBytes(16).toString("hex").toUpperCase(),
+    method: "payment.queryorder",
+    version: "1.0",
+    biz_content: {
+      appid: telebirrConfig.merchantAppId,
+      merch_code: telebirrConfig.merchantCode,
+      merch_order_id: outTradeNo,
+    },
+  };
+
+  requestObject.sign = signRequestObject(requestObject);
+  requestObject.sign_type = "SHA256WithRSA";
+
+  const response = await http.post(
+    `${telebirrConfig.baseUrl}/payment/v1/merchant/queryOrder`,
+    requestObject,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "X-APP-Key": telebirrConfig.fabricAppId,
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  console.log("TELEBIRR QUERY RESPONSE:", JSON.stringify(response.data));
+
+  return response.data;
+}
 
 function createCheckoutUrl(prepayId) {
   const params = {
