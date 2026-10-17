@@ -116,7 +116,23 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ======================================================
+// TEMPORARY TELEBIRR CALLBACK DIAGNOSTIC
+app.use((req, res, next) => {
+  if (
+    req.originalUrl.includes("/api/donations") ||
+    req.originalUrl.includes("/telebirr")
+  ) {
+    console.log("========== TELEBIRR REQUEST DIAGNOSTIC ==========");
+    console.log("Time:", new Date().toISOString());
+    console.log("Method:", req.method);
+    console.log("URL:", req.originalUrl);
+    console.log("Content-Type:", req.headers["content-type"]);
+    console.log("Body:", JSON.stringify(req.body ?? {}));
+    console.log("=================================================");
+  }
+
+  next();
+});// ======================================================
 // CORS SETUP
 // ======================================================
 
