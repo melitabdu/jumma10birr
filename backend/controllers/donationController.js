@@ -181,10 +181,123 @@ export async function queryTelebirrOrder(outTradeNo) {
     }
   );
 
-  console.log("TELEBIRR QUERY RESPONSE:", JSON.stringify(response.data));
+
 
   return response.data;
 }
+
+async function verifyAndUpdateDonation(outTradeNo) {
+  const donation = await Donation.findOne({ outTradeNo });
+
+  if (!donation) {
+    return { found: false };
+  }
+
+  // Already confirmed: make repeated calls safe.
+  if (donation.status === "PAID") {
+    return {
+      found: true,
+      updated: false,
+      status: "PAID",
+    };
+  }
+
+  const result = await queryTelebirrOrder(outTradeNo);
+  const payment = result?.biz_content;
+
+  if (
+    result?.result !== "SUCCESS" ||
+    String(result?.code) !== "0" ||
+    payment?.merch_order_id !== outTradeNo
+  ) {
+    throw new Error("Telebirr did not return a valid order confirmation.");
+  }
+
+  if (
+    Math.abs(Number(payment.total_amount) - donation.amount) > 0.001 ||
+    payment.trans_currency !== "ETB"
+  ) {
+    throw new Error("Telebirr payment amount or currency mismatch.");
+  }
+
+  if (payment.order_status !== "PAY_SUCCESS") {
+    return {
+      found: true,
+      updated: false,
+      status: donation.status,
+      telebirrStatus: payment.order_status,
+    };
+  }
+
+  const paidAt = payment.trans_time
+    ? new Date(payment.trans_time.replace(" ", "T") + "+03:00")
+    : new Date();
+
+  // Only update records that have not already been paid.
+  const updated = await Donation.findOneAndUpdate(
+    { outTradeNo, status: { $ne: "PAID" } },
+    {
+      $set: {
+        status: "PAID",
+        paidAt,
+        gatewayTransactionId: payment.trans_id || null,
+      },
+    },
+    { new: true }
+  );
+
+  const finalDonation =
+    updated || await Donation.findOne({ outTradeNo });
+
+  return {
+    found: true,
+    updated: Boolean(updated),
+    status: finalDonation?.status,
+    outTradeNo,
+    gatewayTransactionId: finalDonation?.gatewayTransactionId,
+  };
+}
+
+export const verifyDonationStatus = async (req, res) => {
+  try {
+    const { outTradeNo } = req.params;
+
+    if (
+      typeof outTradeNo !== "string" ||
+      !/^DON[A-Za-z0-9]+$/.test(outTradeNo)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid donation order number.",
+      });
+    }
+
+    const result = await verifyAndUpdateDonation(outTradeNo);
+
+    if (!result.found) {
+      return res.status(404).json({
+        success: false,
+        message: "Donation not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      donationStatus: result.status,
+      updated: result.updated,
+      telebirrStatus: result.telebirrStatus || null,
+      outTradeNo,
+    });
+  } catch (error) {
+    console.error("DONATION VERIFICATION FAILED:", error.message);
+
+    return res.status(502).json({
+      success: false,
+      message: "Unable to verify payment right now. Please try again.",
+    });
+  }
+};
+
 
 function createCheckoutUrl(prepayId) {
   const params = {
@@ -296,14 +409,47 @@ console.error("Telebirr initiation failed:", {
 // Important: never mark a donation PAID just because a callback
 // contains an order number. Add the official callback-signature and
 // payment-status verification before enabling this update.
-export const handleNotification = async (req, res) => {
-  console.info("Telebirr notification received.");
 
-  // Acknowledge receipt only. This does NOT confirm payment.
-  // Implement verification using the callback specification for
-  // your actual Telebirr merchant integration before updating MongoDB.
-  return res.status(200).json({
-    success: true,
-    message: "Notification received; payment verification is required.",
-  });
+export const handleNotification = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const payload = body.biz_content || body.data || body;
+
+    const outTradeNo =
+      payload.merch_order_id ||
+      payload.merchOrderId ||
+      payload.outTradeNo;
+
+    if (
+      typeof outTradeNo !== "string" ||
+      !/^DON[A-Za-z0-9]+$/.test(outTradeNo)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid notification order number.",
+      });
+    }
+
+    // Never trust callback status alone. Query Telebirr directly.
+    const result = await verifyAndUpdateDonation(outTradeNo);
+
+    if (!result.found) {
+      return res.status(404).json({
+        success: false,
+        message: "Donation not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification processed.",
+    });
+  } catch (error) {
+    console.error("TELEBIRR NOTIFICATION PROCESSING FAILED:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Notification processing failed.",
+    });
+  }
 };
