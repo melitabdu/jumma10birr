@@ -118,6 +118,10 @@ async function createPreOrder({ outTradeNo, amount, title }) {
 
   requestObject.sign = signRequestObject(requestObject);
   requestObject.sign_type = "SHA256WithRSA";
+  console.log("TELEBIRR ORDER CALLBACK CONFIG:", {
+  notifyUrl: telebirrConfig.notifyUrl,
+  outTradeNo,
+});
 
   const response = await http.post(
     `${telebirrConfig.baseUrl}/payment/v1/merchant/preOrder`,
@@ -260,18 +264,13 @@ console.error("Telebirr initiation failed:", {
 // contains an order number. Add the official callback-signature and
 // payment-status verification before enabling this update.
 export const handleNotification = async (req, res) => {
-  console.log(
-    "TELEBIRR_CALLBACK_DIAGNOSTIC",
-    JSON.stringify({
-      body: req.body,
-      headers: {
-        "content-type": req.headers["content-type"],
-      },
-    })
-  );
+  console.info("Telebirr notification received.");
 
+  // Acknowledge receipt only. This does NOT confirm payment.
+  // Implement verification using the callback specification for
+  // your actual Telebirr merchant integration before updating MongoDB.
   return res.status(200).json({
     success: true,
-    message: "Diagnostic notification received",
+    message: "Notification received; payment verification is required.",
   });
 };
