@@ -260,13 +260,18 @@ console.error("Telebirr initiation failed:", {
 // contains an order number. Add the official callback-signature and
 // payment-status verification before enabling this update.
 export const handleNotification = async (req, res) => {
-  console.info("Telebirr notification received.");
+  console.log(
+    "TELEBIRR_CALLBACK_DIAGNOSTIC",
+    JSON.stringify({
+      body: req.body,
+      headers: {
+        "content-type": req.headers["content-type"],
+      },
+    })
+  );
 
-  // Acknowledge receipt only. This does NOT confirm payment.
-  // Implement verification using the callback specification for
-  // your actual Telebirr merchant integration before updating MongoDB.
   return res.status(200).json({
     success: true,
-    message: "Notification received; payment verification is required.",
+    message: "Diagnostic notification received",
   });
 };
