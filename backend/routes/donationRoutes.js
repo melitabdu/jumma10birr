@@ -4,6 +4,7 @@ import {
   initiateDonation,
   handleNotification,
   queryTelebirrOrder,
+  verifyDonationStatus
 } from "../controllers/donationController.js";
 import { Donation } from "../models/donationModel.js";
 
@@ -11,6 +12,7 @@ const router = express.Router();
 
 router.post("/initiate-donation", initiateDonation);
 router.post("/telebirr/notify", handleNotification);
+router.get("/verify/:outTradeNo", verifyDonationStatus);
 
 // Temporary diagnostic route — remove after testing.
 
