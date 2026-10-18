@@ -1,7 +1,8 @@
 
 {
   "expo": {
-    "name": "frontend-mobile",
+
+    "name": "10birr in Jumma",
     "slug": "frontend-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,17 +15,15 @@
 
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/adaptive-icon.png"
       },
       "package": "com.anonymous.frontendmobile",
       "googleServicesFile": "./google-services.json"
     },
 
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
 
     "plugins": [
@@ -43,4 +42,3 @@
     "owner": "melitabdu12"
   }
 }
-
