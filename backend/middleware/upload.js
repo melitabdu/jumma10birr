@@ -1,31 +1,36 @@
+
 import multer from "multer";
 
 const storage = multer.memoryStorage();
 
+const allowedTypes = [
+  // Proposal documents
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+
+  // Project images
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
 const upload = multer({
   storage,
-
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10 MB
+    fileSize: 10 * 1024 * 1024,
   },
-
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain",
-    ];
-
     if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(
-        new Error(
-          "Only PDF, DOC, DOCX, and TXT files are allowed."
-        )
-      );
+      return cb(null, true);
     }
+
+    return cb(
+      new Error(
+        "Only PDF, DOC, DOCX, TXT, JPG, PNG, and WEBP files are allowed."
+      )
+    );
   },
 });
 

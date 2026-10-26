@@ -18,6 +18,11 @@ const proposalSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    imageUrl: {
+  type: String,
+  default: "",
+  trim: true,
+},
 
     // Admin uploads project
     uploadedBy: {
