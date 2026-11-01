@@ -30,6 +30,7 @@ import {
 
 import fs from "node:fs";
 import path from "node:path";
+dotenv.config();
 
 const certPath = process.env.NODE_EXTRA_CA_CERTS;
 
@@ -45,7 +46,7 @@ console.log("Telebirr certificate path diagnostic:", {
 // LOAD ENVIRONMENT VARIABLES
 // ======================================================
 
-dotenv.config();
+
 console.log("=== Telebirr TLS Diagnostics ===");
 console.log("Node version:", process.version);
 console.log(
