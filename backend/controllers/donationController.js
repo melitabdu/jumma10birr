@@ -10,10 +10,78 @@ import {
 import { telebirrConfig } from "../config/telebirrConfig.js";
 import { Donation } from "../models/donationModel.js";
 
+// =====================================================
+// HTTP CLIENT
+// =====================================================
+
 const http = axios.create({
   timeout: 20000,
   // Keep normal TLS certificate verification enabled.
 });
+
+// =====================================================
+// DIAGNOSTIC HELPERS
+// =====================================================
+
+function logDiagnostic(title, data) {
+  console.log(`\n========== ${title} ==========`);
+  console.log(JSON.stringify(data, null, 2));
+  console.log(`========== END ${title} ==========\n`);
+}
+
+function summarizeProviderResponse(data) {
+  return {
+    success: data?.success ?? null,
+    result: data?.result ?? null,
+    code: data?.code ?? null,
+    message: data?.message ?? null,
+    responseCode: data?.responseCode ?? null,
+    responseDesc: data?.responseDesc ?? null,
+    errorCause: data?.errorCause ?? null,
+    hasPrepayId: Boolean(data?.biz_content?.prepay_id),
+    hasToken: Boolean(data?.token),
+  };
+}
+
+function logHttpError(title, error) {
+  logDiagnostic(title, {
+    message: error.message,
+    code: error.code ?? null,
+    httpStatus: error.response?.status ?? null,
+    providerUrl: error.config?.url ?? null,
+    providerResponse: summarizeProviderResponse(
+      error.response?.data
+    ),
+  });
+}
+
+function inspectCheckoutUrl(checkoutUrl) {
+  try {
+    const parsed = new URL(checkoutUrl);
+
+    return {
+      hostname: parsed.hostname,
+      pathname: parsed.pathname,
+      protocol: parsed.protocol,
+      queryParameterNames: [
+        ...parsed.searchParams.keys(),
+      ],
+      hasAppId: parsed.searchParams.has("appid"),
+      hasMerchantCode: parsed.searchParams.has("merch_code"),
+      hasPrepayId: parsed.searchParams.has("prepay_id"),
+      hasSignature: parsed.searchParams.has("sign"),
+      hasTradeType: parsed.searchParams.has("trade_type"),
+    };
+  } catch {
+    return {
+      validUrl: false,
+    };
+  }
+}
+
+// =====================================================
+// NONCE AND SIGNATURE
+// =====================================================
 
 function createNonce() {
   return crypto.randomBytes(16).toString("hex").toUpperCase();
@@ -32,7 +100,6 @@ function createSignature(text) {
   return hextob64(signer.sign());
 }
 
-// Follow the signing-string construction in the supplied demo.
 function signRequestObject(requestObject) {
   const excluded = [
     "sign",
@@ -47,7 +114,11 @@ function signRequestObject(requestObject) {
   const values = {};
 
   for (const [key, value] of Object.entries(requestObject)) {
-    if (!excluded.includes(key) && value !== undefined && value !== null) {
+    if (
+      !excluded.includes(key) &&
+      value !== undefined &&
+      value !== null
+    ) {
       values[key] = value;
     }
   }
@@ -56,7 +127,11 @@ function signRequestObject(requestObject) {
     for (const [key, value] of Object.entries(
       requestObject.biz_content
     )) {
-      if (!excluded.includes(key) && value !== undefined && value !== null) {
+      if (
+        !excluded.includes(key) &&
+        value !== undefined &&
+        value !== null
+      ) {
         values[key] = value;
       }
     }
@@ -70,42 +145,80 @@ function signRequestObject(requestObject) {
   return createSignature(signingString);
 }
 
+// =====================================================
+// FABRIC TOKEN
+// =====================================================
+
 async function getFabricToken() {
-  const response = await http.post(
-    `${telebirrConfig.baseUrl}/payment/v1/token`,
-    {
-      appSecret: telebirrConfig.appSecret,
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "X-APP-Key": telebirrConfig.fabricAppId,
+  const tokenUrl =
+    `${telebirrConfig.baseUrl}/payment/v1/token`;
+
+  logDiagnostic("TELEBIRR TOKEN REQUEST", {
+    url: tokenUrl,
+    method: "POST",
+    appKeyConfigured: Boolean(telebirrConfig.fabricAppId),
+    appSecretConfigured: Boolean(telebirrConfig.appSecret),
+  });
+
+  try {
+    const response = await http.post(
+      tokenUrl,
+      {
+        appSecret: telebirrConfig.appSecret,
       },
-    }
-  );
-
-  const token = response.data?.token;
-
-  if (!token || typeof token !== "string") {
-    throw new Error(
-      "Telebirr token response did not contain a valid token."
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-APP-Key": telebirrConfig.fabricAppId,
+        },
+      }
     );
-  }
 
-  return token;
+    logDiagnostic("TELEBIRR TOKEN RESPONSE", {
+      httpStatus: response.status,
+      tokenReceived: Boolean(response.data?.token),
+      providerResponse: summarizeProviderResponse(
+        response.data
+      ),
+    });
+
+    const token = response.data?.token;
+
+    if (!token || typeof token !== "string") {
+      throw new Error(
+        "Telebirr token response did not contain a valid token."
+      );
+    }
+
+    return token;
+  } catch (error) {
+    logHttpError("TELEBIRR TOKEN REQUEST FAILED", error);
+    throw error;
+  }
 }
 
-async function createPreOrder({ outTradeNo, amount, title }) {
+// =====================================================
+// CREATE PRE-ORDER
+// =====================================================
+
+async function createPreOrder({
+  outTradeNo,
+  amount,
+  title,
+}) {
   const fabricToken = await getFabricToken();
+
+  const appId = telebirrConfig.merchantAppId;
 
   const requestObject = {
     timestamp: Math.floor(Date.now() / 1000).toString(),
     nonce_str: createNonce(),
     method: "payment.preorder",
     version: "1.0",
+
     biz_content: {
       notify_url: telebirrConfig.notifyUrl,
-      appid: telebirrConfig.merchantAppId,
+      appid: appId,
       merch_code: telebirrConfig.merchantCode,
       merch_order_id: outTradeNo,
       trade_type: "Checkout",
@@ -116,49 +229,103 @@ async function createPreOrder({ outTradeNo, amount, title }) {
     },
   };
 
+  // Diagnose App ID without exposing credentials.
+  logDiagnostic("TELEBIRR APP ID DIAGNOSTIC", {
+    appIdType: typeof appId,
+    appIdIsNumeric:
+      typeof appId === "number"
+        ? Number.isFinite(appId)
+        : typeof appId === "string"
+          ? /^\d+$/.test(appId)
+          : false,
+    appIdConfigured: appId !== undefined && appId !== null,
+    merchantCodeConfigured: Boolean(
+      telebirrConfig.merchantCode
+    ),
+    fabricAppIdConfigured: Boolean(
+      telebirrConfig.fabricAppId
+    ),
+  });
+
   requestObject.sign = signRequestObject(requestObject);
   requestObject.sign_type = "SHA256WithRSA";
-  console.log("TELEBIRR ORDER CALLBACK CONFIG:", {
-  notifyUrl: telebirrConfig.notifyUrl,
-  outTradeNo,
-});
 
-  const response = await http.post(
-    `${telebirrConfig.baseUrl}/payment/v1/merchant/preOrder`,
-    requestObject,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "X-APP-Key": telebirrConfig.fabricAppId,
-        Authorization: fabricToken,
-      },
-    }
-  );
+  logDiagnostic("TELEBIRR PREORDER REQUEST", {
+    url: `${telebirrConfig.baseUrl}/payment/v1/merchant/preOrder`,
+    method: "POST",
+    outTradeNo,
+    amount: amount.toFixed(2),
+    currency: "ETB",
+    tradeType: "Checkout",
+    notifyUrl: telebirrConfig.notifyUrl,
+    appIdType: typeof appId,
+    appIdIsNumeric:
+      typeof appId === "number"
+        ? Number.isFinite(appId)
+        : typeof appId === "string"
+          ? /^\d+$/.test(appId)
+          : false,
+    signatureGenerated: Boolean(requestObject.sign),
+    fabricTokenAvailable: Boolean(fabricToken),
+  });
 
-  const prepayId = response.data?.biz_content?.prepay_id;
-
-  if (!prepayId) {
-    // Do not log secrets, tokens, private keys, or full signed requests.
-    throw new Error(
-      `Telebirr pre-order did not return a prepay_id. ` +
-      `Provider response: ${JSON.stringify({
-        code: response.data?.code ?? null,
-        message: response.data?.message ?? null,
-        result: response.data?.result ?? null,
-      })}`
+  try {
+    const response = await http.post(
+      `${telebirrConfig.baseUrl}/payment/v1/merchant/preOrder`,
+      requestObject,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-APP-Key": telebirrConfig.fabricAppId,
+          Authorization: fabricToken,
+        },
+      }
     );
-  }
 
-  return prepayId;
+    logDiagnostic("TELEBIRR PREORDER RESPONSE", {
+      httpStatus: response.status,
+      providerResponse: summarizeProviderResponse(
+        response.data
+      ),
+      outTradeNo,
+    });
+
+    const prepayId = response.data?.biz_content?.prepay_id;
+
+    if (!prepayId) {
+      throw new Error(
+        `Telebirr pre-order did not return a prepay_id. ` +
+        `Provider response: ${JSON.stringify(
+          summarizeProviderResponse(response.data)
+        )}`
+      );
+    }
+
+    logDiagnostic("TELEBIRR PREORDER SUCCESS", {
+      outTradeNo,
+      prepayIdReceived: true,
+    });
+
+    return prepayId;
+  } catch (error) {
+    logHttpError("TELEBIRR PREORDER FAILED", error);
+    throw error;
+  }
 }
+
+// =====================================================
+// QUERY TELEBIRR ORDER
+// =====================================================
+
 export async function queryTelebirrOrder(outTradeNo) {
   const token = await getFabricToken();
 
   const requestObject = {
     timestamp: Math.floor(Date.now() / 1000).toString(),
-    nonce_str: crypto.randomBytes(16).toString("hex").toUpperCase(),
+    nonce_str: createNonce(),
     method: "payment.queryorder",
     version: "1.0",
+
     biz_content: {
       appid: telebirrConfig.merchantAppId,
       merch_code: telebirrConfig.merchantCode,
@@ -169,22 +336,45 @@ export async function queryTelebirrOrder(outTradeNo) {
   requestObject.sign = signRequestObject(requestObject);
   requestObject.sign_type = "SHA256WithRSA";
 
-  const response = await http.post(
-    `${telebirrConfig.baseUrl}/payment/v1/merchant/queryOrder`,
-    requestObject,
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "X-APP-Key": telebirrConfig.fabricAppId,
-        Authorization: token,
-      },
-    }
-  );
+  logDiagnostic("TELEBIRR QUERY ORDER REQUEST", {
+    outTradeNo,
+    appIdType: typeof telebirrConfig.merchantAppId,
+    signatureGenerated: Boolean(requestObject.sign),
+  });
 
+  try {
+    const response = await http.post(
+      `${telebirrConfig.baseUrl}/payment/v1/merchant/queryOrder`,
+      requestObject,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-APP-Key": telebirrConfig.fabricAppId,
+          Authorization: token,
+        },
+      }
+    );
 
+    logDiagnostic("TELEBIRR QUERY ORDER RESPONSE", {
+      httpStatus: response.status,
+      outTradeNo,
+      providerResponse: summarizeProviderResponse(
+        response.data
+      ),
+      orderStatus:
+        response.data?.biz_content?.order_status ?? null,
+    });
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    logHttpError("TELEBIRR QUERY ORDER FAILED", error);
+    throw error;
+  }
 }
+
+// =====================================================
+// VERIFY AND UPDATE DONATION
+// =====================================================
 
 async function verifyAndUpdateDonation(outTradeNo) {
   const donation = await Donation.findOne({ outTradeNo });
@@ -193,7 +383,6 @@ async function verifyAndUpdateDonation(outTradeNo) {
     return { found: false };
   }
 
-  // Already confirmed: make repeated calls safe.
   if (donation.status === "PAID") {
     return {
       found: true,
@@ -210,17 +399,29 @@ async function verifyAndUpdateDonation(outTradeNo) {
     String(result?.code) !== "0" ||
     payment?.merch_order_id !== outTradeNo
   ) {
-    throw new Error("Telebirr did not return a valid order confirmation.");
+    throw new Error(
+      "Telebirr did not return a valid order confirmation."
+    );
   }
 
   if (
-    Math.abs(Number(payment.total_amount) - donation.amount) > 0.001 ||
+    Math.abs(
+      Number(payment.total_amount) - donation.amount
+    ) > 0.001 ||
     payment.trans_currency !== "ETB"
   ) {
-    throw new Error("Telebirr payment amount or currency mismatch.");
+    throw new Error(
+      "Telebirr payment amount or currency mismatch."
+    );
   }
 
   if (payment.order_status !== "PAY_SUCCESS") {
+    logDiagnostic("TELEBIRR PAYMENT NOT YET SUCCESSFUL", {
+      outTradeNo,
+      orderStatus: payment.order_status,
+      donationStatus: donation.status,
+    });
+
     return {
       found: true,
       updated: false,
@@ -230,12 +431,16 @@ async function verifyAndUpdateDonation(outTradeNo) {
   }
 
   const paidAt = payment.trans_time
-    ? new Date(payment.trans_time.replace(" ", "T") + "+03:00")
+    ? new Date(
+        payment.trans_time.replace(" ", "T") + "+03:00"
+      )
     : new Date();
 
-  // Only update records that have not already been paid.
   const updated = await Donation.findOneAndUpdate(
-    { outTradeNo, status: { $ne: "PAID" } },
+    {
+      outTradeNo,
+      status: { $ne: "PAID" },
+    },
     {
       $set: {
         status: "PAID",
@@ -249,14 +454,25 @@ async function verifyAndUpdateDonation(outTradeNo) {
   const finalDonation =
     updated || await Donation.findOne({ outTradeNo });
 
+  logDiagnostic("DONATION PAYMENT STATUS", {
+    outTradeNo,
+    updated: Boolean(updated),
+    status: finalDonation?.status,
+  });
+
   return {
     found: true,
     updated: Boolean(updated),
     status: finalDonation?.status,
     outTradeNo,
-    gatewayTransactionId: finalDonation?.gatewayTransactionId,
+    gatewayTransactionId:
+      finalDonation?.gatewayTransactionId,
   };
 }
+
+// =====================================================
+// VERIFY DONATION STATUS ENDPOINT
+// =====================================================
 
 export const verifyDonationStatus = async (req, res) => {
   try {
@@ -289,15 +505,22 @@ export const verifyDonationStatus = async (req, res) => {
       outTradeNo,
     });
   } catch (error) {
-    console.error("DONATION VERIFICATION FAILED:", error.message);
+    console.error(
+      "DONATION VERIFICATION FAILED:",
+      error.message
+    );
 
     return res.status(502).json({
       success: false,
-      message: "Unable to verify payment right now. Please try again.",
+      message:
+        "Unable to verify payment right now. Please try again.",
     });
   }
 };
 
+// =====================================================
+// CREATE CHECKOUT URL
+// =====================================================
 
 function createCheckoutUrl(prepayId) {
   const params = {
@@ -319,13 +542,38 @@ function createCheckoutUrl(prepayId) {
   });
 
   const separator = telebirrConfig.webBaseUrl.includes("?")
-    ? (telebirrConfig.webBaseUrl.endsWith("?") ||
-       telebirrConfig.webBaseUrl.endsWith("&") ? "" : "&")
+    ? (
+        telebirrConfig.webBaseUrl.endsWith("?") ||
+        telebirrConfig.webBaseUrl.endsWith("&")
+          ? ""
+          : "&"
+      )
     : "?";
 
-  return `${telebirrConfig.webBaseUrl}${separator}${query.toString()}`;
+  const checkoutUrl =
+    `${telebirrConfig.webBaseUrl}${separator}${query.toString()}`;
+
+  // Do not log the full URL because it contains signed
+  // payment parameters and a prepay ID.
+  logDiagnostic("TELEBIRR CHECKOUT URL GENERATED", {
+    ...inspectCheckoutUrl(checkoutUrl),
+    prepayIdReceived: Boolean(prepayId),
+    signatureGenerated: Boolean(signature),
+    appIdType: typeof params.appid,
+    appIdIsNumeric:
+      typeof params.appid === "number"
+        ? Number.isFinite(params.appid)
+        : typeof params.appid === "string"
+          ? /^\d+$/.test(params.appid)
+          : false,
+  });
+
+  return checkoutUrl;
 }
 
+// =====================================================
+// INITIATE DONATION ENDPOINT
+// =====================================================
 
 export const initiateDonation = async (req, res) => {
   let donation;
@@ -346,17 +594,27 @@ export const initiateDonation = async (req, res) => {
       });
     }
 
-    // This example accepts two decimal places.
-    if (Math.round(numericAmount * 100) !== numericAmount * 100) {
+    if (
+      Math.round(numericAmount * 100) !==
+      numericAmount * 100
+    ) {
       return res.status(400).json({
         success: false,
-        message: "The donation amount can have at most two decimal places.",
+        message:
+          "The donation amount can have at most two decimal places.",
       });
     }
 
-    // A timestamp plus random bytes makes accidental collisions unlikely.
     const outTradeNo =
       `DON${Date.now()}${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+
+    logDiagnostic("DONATION INITIATION", {
+      outTradeNo,
+      amount: numericAmount,
+      donationType,
+      requestContentType: req.headers["content-type"] ?? null,
+      backendNodeVersion: process.version,
+    });
 
     donation = await Donation.create({
       outTradeNo,
@@ -380,6 +638,13 @@ export const initiateDonation = async (req, res) => {
 
     const paymentUrl = createCheckoutUrl(prepayId);
 
+    logDiagnostic("DONATION CHECKOUT READY", {
+      outTradeNo,
+      donationStatus: donation.status,
+      checkoutUrl: inspectCheckoutUrl(paymentUrl),
+      responseSuccess: true,
+    });
+
     return res.status(200).json({
       success: true,
       outTradeNo,
@@ -387,28 +652,30 @@ export const initiateDonation = async (req, res) => {
       status: donation.status,
     });
   } catch (error) {
-    
-console.error("Telebirr initiation failed:", {
-  status: error.response?.status ?? null,
-  providerResponse: error.response?.data ?? null,
-  providerUrl: error.config?.url ?? null,
-  message: error.message,
-});
-
+    logHttpError("TELEBIRR DONATION INITIATION FAILED", error);
 
     return res.status(502).json({
       success: false,
       message: "Could not initialize Telebirr checkout.",
-      // Safe diagnostic detail; never return credentials or signed requests.
-      providerCode: error.response?.data?.code ?? undefined,
-      providerMessage: error.response?.data?.message ?? undefined,
+      providerCode:
+        error.response?.data?.code ??
+        error.response?.data?.responseCode ??
+        undefined,
+      providerMessage:
+        error.response?.data?.message ??
+        error.response?.data?.responseDesc ??
+        undefined,
     });
   }
 };
 
-// Important: never mark a donation PAID just because a callback
-// contains an order number. Add the official callback-signature and
-// payment-status verification before enabling this update.
+// =====================================================
+// TELEBIRR NOTIFICATION ENDPOINT
+// =====================================================
+
+// Important: Never mark a donation PAID just because
+// a callback contains an order number.
+// Query Telebirr directly and verify the payment.
 
 export const handleNotification = async (req, res) => {
   try {
@@ -420,6 +687,11 @@ export const handleNotification = async (req, res) => {
       payload.merchOrderId ||
       payload.outTradeNo;
 
+    logDiagnostic("TELEBIRR NOTIFICATION RECEIVED", {
+      outTradeNo: outTradeNo || null,
+      contentType: req.headers["content-type"] ?? null,
+    });
+
     if (
       typeof outTradeNo !== "string" ||
       !/^DON[A-Za-z0-9]+$/.test(outTradeNo)
@@ -430,7 +702,6 @@ export const handleNotification = async (req, res) => {
       });
     }
 
-    // Never trust callback status alone. Query Telebirr directly.
     const result = await verifyAndUpdateDonation(outTradeNo);
 
     if (!result.found) {
@@ -445,7 +716,10 @@ export const handleNotification = async (req, res) => {
       message: "Notification processed.",
     });
   } catch (error) {
-    console.error("TELEBIRR NOTIFICATION PROCESSING FAILED:", error.message);
+    console.error(
+      "TELEBIRR NOTIFICATION PROCESSING FAILED:",
+      error.message
+    );
 
     return res.status(500).json({
       success: false,
