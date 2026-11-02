@@ -16,7 +16,7 @@ import { Donation } from "../models/donationModel.js";
 
 const http = axios.create({
   timeout: 20000,
-  // Keep normal TLS certificate verification enabled.
+  // Normal TLS certificate verification remains enabled.
 });
 
 // =====================================================
@@ -38,6 +38,7 @@ function summarizeProviderResponse(data) {
     responseCode: data?.responseCode ?? null,
     responseDesc: data?.responseDesc ?? null,
     errorCause: data?.errorCause ?? null,
+    orderStatus: data?.biz_content?.order_status ?? null,
     hasPrepayId: Boolean(data?.biz_content?.prepay_id),
     hasToken: Boolean(data?.token),
   };
@@ -229,7 +230,6 @@ async function createPreOrder({
     },
   };
 
-  // Diagnose App ID without exposing credentials.
   logDiagnostic("TELEBIRR APP ID DIAGNOSTIC", {
     appIdType: typeof appId,
     appIdIsNumeric:
@@ -383,17 +383,20 @@ async function verifyAndUpdateDonation(outTradeNo) {
     return { found: false };
   }
 
+  // Never downgrade an already paid donation.
   if (donation.status === "PAID") {
     return {
       found: true,
       updated: false,
       status: "PAID",
+      telebirrStatus: "PAY_SUCCESS",
     };
   }
 
   const result = await queryTelebirrOrder(outTradeNo);
   const payment = result?.biz_content;
 
+  // First validate the query response itself.
   if (
     result?.result !== "SUCCESS" ||
     String(result?.code) !== "0" ||
@@ -404,21 +407,17 @@ async function verifyAndUpdateDonation(outTradeNo) {
     );
   }
 
-  if (
-    Math.abs(
-      Number(payment.total_amount) - donation.amount
-    ) > 0.001 ||
-    payment.trans_currency !== "ETB"
-  ) {
-    throw new Error(
-      "Telebirr payment amount or currency mismatch."
-    );
-  }
+  const orderStatus = payment?.order_status;
 
-  if (payment.order_status !== "PAY_SUCCESS") {
-    logDiagnostic("TELEBIRR PAYMENT NOT YET SUCCESSFUL", {
+  // ---------------------------------------------------
+  // WAIT_PAY: payment is still pending.
+  // Do not validate amount/currency yet.
+  // ---------------------------------------------------
+
+  if (orderStatus === "WAIT_PAY") {
+    logDiagnostic("TELEBIRR PAYMENT PENDING", {
       outTradeNo,
-      orderStatus: payment.order_status,
+      orderStatus,
       donationStatus: donation.status,
     });
 
@@ -426,8 +425,112 @@ async function verifyAndUpdateDonation(outTradeNo) {
       found: true,
       updated: false,
       status: donation.status,
-      telebirrStatus: payment.order_status,
+      telebirrStatus: orderStatus,
+      outTradeNo,
     };
+  }
+
+  // ---------------------------------------------------
+  // PAY_FAILED: payment failed.
+  // Do not mark it as paid.
+  // ---------------------------------------------------
+
+  if (orderStatus === "PAY_FAILED") {
+    logDiagnostic("TELEBIRR PAYMENT FAILED", {
+      outTradeNo,
+      orderStatus,
+      donationStatus: donation.status,
+    });
+
+    const failedDonation = await Donation.findOneAndUpdate(
+      {
+        outTradeNo,
+        status: { $nin: ["PAID", "FAILED"] },
+      },
+      {
+        $set: {
+          status: "FAILED",
+        },
+      },
+      { new: true }
+    );
+
+    const finalDonation =
+      failedDonation ||
+      await Donation.findOne({ outTradeNo });
+
+    return {
+      found: true,
+      updated: Boolean(failedDonation),
+      status: finalDonation?.status,
+      telebirrStatus: orderStatus,
+      outTradeNo,
+    };
+  }
+
+  // ---------------------------------------------------
+  // UNKNOWN STATUS: do not change donation status.
+  // ---------------------------------------------------
+
+  if (orderStatus !== "PAY_SUCCESS") {
+    logDiagnostic("TELEBIRR UNKNOWN PAYMENT STATUS", {
+      outTradeNo,
+      orderStatus: orderStatus || null,
+      donationStatus: donation.status,
+    });
+
+    return {
+      found: true,
+      updated: false,
+      status: donation.status,
+      telebirrStatus: orderStatus || "UNKNOWN",
+      outTradeNo,
+    };
+  }
+
+  // ---------------------------------------------------
+  // PAY_SUCCESS: validate amount and currency.
+  // Only this status can mark a donation as paid.
+  // ---------------------------------------------------
+
+  const telebirrAmount = Number(payment.total_amount);
+  const donationAmount = Number(donation.amount);
+
+  const currency = String(
+    payment.trans_currency || ""
+  ).toUpperCase();
+
+  if (
+    !Number.isFinite(telebirrAmount) ||
+    !Number.isFinite(donationAmount) ||
+    Math.round(telebirrAmount * 100) !==
+      Math.round(donationAmount * 100)
+  ) {
+    logDiagnostic("TELEBIRR AMOUNT MISMATCH", {
+      outTradeNo,
+      expectedAmount: donationAmount,
+      receivedAmount: Number.isFinite(telebirrAmount)
+        ? telebirrAmount
+        : null,
+      orderStatus,
+    });
+
+    throw new Error(
+      "Telebirr payment amount does not match the donation."
+    );
+  }
+
+  if (currency !== "ETB") {
+    logDiagnostic("TELEBIRR CURRENCY MISMATCH", {
+      outTradeNo,
+      expectedCurrency: "ETB",
+      receivedCurrency: currency || null,
+      orderStatus,
+    });
+
+    throw new Error(
+      "Telebirr payment currency does not match ETB."
+    );
   }
 
   const paidAt = payment.trans_time
@@ -436,6 +539,7 @@ async function verifyAndUpdateDonation(outTradeNo) {
       )
     : new Date();
 
+  // Conditional update protects against concurrent callbacks.
   const updated = await Donation.findOneAndUpdate(
     {
       outTradeNo,
@@ -452,21 +556,25 @@ async function verifyAndUpdateDonation(outTradeNo) {
   );
 
   const finalDonation =
-    updated || await Donation.findOne({ outTradeNo });
+    updated ||
+    await Donation.findOne({ outTradeNo });
 
   logDiagnostic("DONATION PAYMENT STATUS", {
     outTradeNo,
     updated: Boolean(updated),
     status: finalDonation?.status,
+    gatewayTransactionId:
+      finalDonation?.gatewayTransactionId || null,
   });
 
   return {
     found: true,
     updated: Boolean(updated),
     status: finalDonation?.status,
+    telebirrStatus: orderStatus,
     outTradeNo,
     gatewayTransactionId:
-      finalDonation?.gatewayTransactionId,
+      finalDonation?.gatewayTransactionId || null,
   };
 }
 
@@ -497,8 +605,19 @@ export const verifyDonationStatus = async (req, res) => {
       });
     }
 
+    let message = "Payment status checked.";
+
+    if (result.status === "PAID") {
+      message = "Donation payment successful.";
+    } else if (result.telebirrStatus === "WAIT_PAY") {
+      message = "Payment is still waiting for confirmation.";
+    } else if (result.telebirrStatus === "PAY_FAILED") {
+      message = "Telebirr reports that the payment failed.";
+    }
+
     return res.status(200).json({
       success: true,
+      message,
       donationStatus: result.status,
       updated: result.updated,
       telebirrStatus: result.telebirrStatus || null,
@@ -553,8 +672,7 @@ function createCheckoutUrl(prepayId) {
   const checkoutUrl =
     `${telebirrConfig.webBaseUrl}${separator}${query.toString()}`;
 
-  // Do not log the full URL because it contains signed
-  // payment parameters and a prepay ID.
+  // Do not log the full URL. It contains signed payment data.
   logDiagnostic("TELEBIRR CHECKOUT URL GENERATED", {
     ...inspectCheckoutUrl(checkoutUrl),
     prepayIdReceived: Boolean(prepayId),
@@ -673,9 +791,8 @@ export const initiateDonation = async (req, res) => {
 // TELEBIRR NOTIFICATION ENDPOINT
 // =====================================================
 
-// Important: Never mark a donation PAID just because
-// a callback contains an order number.
-// Query Telebirr directly and verify the payment.
+// Never mark a donation PAID just because a callback
+// contains an order number. Query Telebirr directly.
 
 export const handleNotification = async (req, res) => {
   try {
@@ -714,6 +831,8 @@ export const handleNotification = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Notification processed.",
+      donationStatus: result.status,
+      telebirrStatus: result.telebirrStatus || null,
     });
   } catch (error) {
     console.error(
